@@ -1,13 +1,15 @@
-OUTPUT_FORMAT(elf64-x86-64)
-ENTRY(start_kernel)
+SECTIONS
+{
+    /DISCARD/ :
+    {
+        *(.note*)
+        *(.comment*)
+        *(.eh_frame*)
+        *(.gnu*)
+    }
 
-SECTIONS {
     . = 0x10000;
-    .text : { *(.text) }
-    .data : { *(.data) }
-    .rodata : { *(.rodata) }
-    .bss : { 
-        *(.bss) 
-        *(COMMON)
+    .kernel : {
+        *(.kernel)
     }
 }
