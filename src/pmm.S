@@ -1,9 +1,4 @@
-#define PDPT_ADDR 0x00100000
-#define PAGE_DIR_ADDR 0x00101000
-#define PAGE_TABLE_ADDR 0x00105000
-#define BITMAP_ADDR 0x00905000
-#define MEMMAP_STRUCT_ADDR 0X8000
-#define MEMMAP_COUNT_ADDR 0X7000
+#include "config.h"
 
 .global pmm_init
 pmm_init:

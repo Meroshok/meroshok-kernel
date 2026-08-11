@@ -1,8 +1,4 @@
-#define KERNEL_PHYS_ADDR 0x10000
-#define KERNEL_SEGMENT 0x1000
-#define KERNEL_OFFSET 0
-#define MEMMAP_STRUCT_ADDR 0X8000
-#define MEMMAP_COUNT_ADDR 0X7000
+#include "config.h"
 
 .code16
 boot:
@@ -15,7 +11,22 @@ boot:
     sti
 
     movb %dl, disk
-    call vgaclear
+     
+vgaclear:
+    movw $0xB800, %ax
+    movw %ax, %es
+    xorw %di, %di
+    cld
+    xorl %eax, %eax
+    movw $1000, %cx
+    rep stosl
+
+    movw $0x3D4, %dx
+    movb $0x0A, %al
+    outb %al, %dx
+    incw %dx
+    movb $0x20, %al
+    outb %al, %dx
 
 lba_check:
     movb $0x41, %ah
@@ -36,6 +47,12 @@ lba_kernel:
     movw $dap_kernel, %si
     int $0x13
     jc disk_err
+
+    xorw %ax, %ax
+    movw %ax, %es
+    movw $0x9000, %di
+    movw $0x4F00, %ax
+    int $0x10
 
 memmap:
     xorl %ebx, %ebx
@@ -71,18 +88,6 @@ pm_init:
     jmp KERNEL_PHYS_ADDR
 
 .code16
-vgaclear:
-    pusha
-    movw $0xB800, %ax
-    movw %ax, %es
-    xorw %di, %di
-    cld
-    xorl %eax, %eax
-    movw $1000, %cx
-    rep stosl
-    popa
-    ret
-
 disk_err:
 memmap_err:
     cli
@@ -93,7 +98,7 @@ memmap_err:
     dap_kernel:
     .byte 0x10
     .byte 0x00
-    .word 4
+    .word KERNEL_SECTORS
     .word KERNEL_OFFSET
     .word KERNEL_SEGMENT
     .quad 1

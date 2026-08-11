@@ -2,7 +2,7 @@ CC = x86_64-elf-gcc
 LD = x86_64-elf-ld
 OBJCOPY = x86_64-elf-objcopy
 
-ASFLAGS = -c -m32 -ffreestanding
+ASFLAGS = -c -m32 -ffreestanding -Iinclude
 CFLAGS  = -m32 -ffreestanding -O2 -Wall -Iinclude
 LDFLAGS = -m elf_i386 -T linker.ld --build-id=none
 
@@ -11,9 +11,9 @@ SRC_DIR = src
 
 KERNEL_OBJS = \
 	$(BUILD_DIR)/kernel.o \
-	$(BUILD_DIR)/kernel_main.o \
 	$(BUILD_DIR)/pmm.o \
-	$(BUILD_DIR)/vga_print.o
+	$(BUILD_DIR)/vga_write.o \
+	$(BUILD_DIR)/vga_shell.o \
 
 all: os.img
 
