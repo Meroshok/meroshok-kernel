@@ -1,13 +1,17 @@
-#include "config.h"
+.code32
 
+#include "config.h"
+.extern vga_clear
+
+.section .text
 .global vga_shell
 vga_shell:
     movl VGA_BUFFER_PTR_ADDR, %edi
     xorl %ebx, %ebx 
-    movl $0x00000F3E, (%edi)
+    movl $0x0000F3E, (%edi)
     addl $4, %edi
-
-    movl $VGA_ROW_SIZE, %ebp
+    movl $0xF000, (%edi)
+    movl $VGA_ROW_SIZE - 4, %ebp
 .read:
     xorl %eax, %eax
     inb $0x64, %al
@@ -66,21 +70,38 @@ vga_shell:
     movb $0x0F, %ah
     movw %ax, (%edi, %ebx)
 
-    movw $0xF000, 2(%edi, %ebx)
-
     addl $2, %ebx
     subl $2, %ebp
+
+    movw $0xF000, (%edi, %ebx)
 
     testl %ebp, %ebp
     jnz .read
 
     movl $VGA_ROW_SIZE, %ebp
-    
     leal (%edi,%ebx), %eax
+    
     cmpl $(VGA_ADDR + VGA_SIZE), %eax
-    jne .read
+    jb .read
 
-    jmp .scroll
+    cmpl $(VGA_SIZE - 4), %ebx
+    jae vga_clear
+
+    movl $(VGA_ADDR + VGA_ROW_SIZE), %esi
+    movl $VGA_ADDR, %edi
+    movl $(VGA_SIZE - VGA_ROW_SIZE) / 4, %ecx
+    rep movsl
+
+    xorl %eax, %eax
+    movl $VGA_ROW_SIZE / 4, %ecx
+    rep stosl
+
+    movl $(VGA_ADDR + VGA_SIZE - VGA_ROW_SIZE), %edi
+    subl %ebx, %edi
+    movl $VGA_ROW_SIZE, %ebp
+
+    jmp .read
+
 
 .backspace:
     testl %ebx, %ebx
@@ -92,29 +113,25 @@ vga_shell:
     subl $2, %ebx
     addl $2, %ebp
 
-    movw %ax, (%edi, %ebx)
-
-    movw -2(%edi, %ebx), %ax
-    testw %ax, %ax
-    jz .read
-
-    movw (%edi, %ebx), %cx
-    notb %ch
-    movw %cx, -2(%edi, %ebx)
+    movl $0xF000, (%edi, %ebx)
 
     jmp .read
 
 .enter:
+    movw (%edi,%ebx), %ax
     notb %ah
-    movb %ah, (%edi,%ebx)
+    movw %ax, (%edi,%ebx)
 
     addl %ebx, %edi
     addl %ebp, %edi
 
     xorl %ebx, %ebx
-    movl $VGA_ROW_SIZE, %ebp
+    movl $VGA_ROW_SIZE - 4, %ebp
 
-    movl $0x00000F3E, -4(%edi)
+    movl $0x0000F3E, (%edi)
+    addl $4, %edi
+    movl $0xF000, (%edi)
+    movl $VGA_ROW_SIZE - 4, %ebp
 
     cmpl $(VGA_ADDR + VGA_SIZE), %edi
     jae .scroll
@@ -127,11 +144,17 @@ vga_shell:
     rep movsl
 
     xorl %eax, %eax
-    movl $160 / 4, %ecx
+    movl $VGA_ROW_SIZE / 4, %ecx
     rep stosl
 
-    movl $VGA_ROW_SIZE, %ebp
     movl $(VGA_ADDR + VGA_SIZE - VGA_ROW_SIZE), %edi
+    xorl %ebx, %ebx
+    movl $VGA_ROW_SIZE - 4, %ebp
+
+    movl $0x0000F3E, (%edi)
+    addl $4, %edi
+    movl $0xF000, (%edi)
+
     jmp .read
 
 .shift_press:

@@ -1,13 +1,22 @@
+.code32
 #include "config.h"
+.extern pmm_pdpt_addr
+.extern pmm_page_dir_addr
+.extern pmm_page_table_addr
+.extern kernel_memmap
+.extern memmap_count
 
+.section .text
 .global pmm_init
 pmm_init:
 
 pdpt_init:
     xorl %eax, %eax
-    movl $PDPT_ADDR, %edi
-    movl $(PAGE_DIR_ADDR + 3), %esi
+    movl pmm_pdpt_addr, %edi
+    movl pmm_page_dir_addr, %esi
+    movl %edi, %ebp
     movl %esi, %edx
+    orl $3, %esi
     movl $4, %ecx
 
 pdpt_loop:
@@ -17,9 +26,10 @@ pdpt_loop:
     addl $8, %edi
     loop pdpt_loop
 
-
-    movl $PAGE_DIR_ADDR, %edi
-    movl $(PAGE_TABLE_ADDR + 3), %esi
+    movl %edx, %edi
+    movl pmm_page_table_addr, %esi
+    movl %esi, %edx
+    orl $3, %esi
     movl $(4 * 512), %ecx
 
 pd_loop:
@@ -29,8 +39,7 @@ pd_loop:
     addl $8, %edi
     loop pd_loop
 
-
-    movl $PAGE_TABLE_ADDR, %edi
+    movl %edx, %edi
     movl $3, %ebx
     movl $(4 * 512 * 512), %ecx
 
@@ -41,7 +50,8 @@ pt_loop:
     addl $8, %edi
     loop pt_loop
 
-    movl $PDPT_ADDR, %eax
+paging_enable:
+    movl %ebp, %eax
     movl %eax, %cr3
 
     movl %cr4, %eax

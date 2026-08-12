@@ -1,14 +1,10 @@
 .code32
-.global kernel
-
 #include "config.h"
-
-
 .extern pmm_init
 .extern vga_shell
 
-.section .kernel, "ax"
-
+.section .text
+.global kernel
 kernel:
     movw $0x10, %ax
     movw %ax, %ds
@@ -20,8 +16,10 @@ kernel:
     movl $0x90000, %esp
     cld
 
+
+
     movl $VGA_ADDR, VGA_BUFFER_PTR_ADDR
-    movl $(VGA_ROW_SIZE / 2), VGA_ROW_REMAINING_ADDR
+    movl $VGA_ROW_SIZE, VGA_ROW_REMAINING_ADDR
     
     call pmm_init
     call vga_shell

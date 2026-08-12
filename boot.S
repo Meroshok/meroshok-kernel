@@ -1,6 +1,6 @@
-#include "config.h"
-
 .code16
+.extern kernel_sectors
+
 boot:
     cli
     xorw %ax, %ax
@@ -57,7 +57,7 @@ lba_kernel:
 memmap:
     xorl %ebx, %ebx
     xorl %esi, %esi
-    movl $MEMMAP_STRUCT_ADDR, %edi
+    movl $0x7004, %edi
 
 .loop:
     xorw %ax, %ax
@@ -72,7 +72,7 @@ memmap:
     testl %ebx, %ebx
     jnz .loop
 
-    movl %esi, MEMMAP_COUNT_ADDR
+    movl %esi, 0x7000
 
     cli
     lgdt gdt_descriptor
@@ -80,12 +80,12 @@ memmap:
     orl $1, %eax
     movl %eax, %cr0
 
-    ljmp $0x08, $pm_init
+    ljmp $0x08, $pm_jmp
 
 
 .code32
-pm_init:
-    jmp KERNEL_PHYS_ADDR
+pm_jmp:
+    jmp 0x10000
 
 .code16
 disk_err:
@@ -95,22 +95,22 @@ memmap_err:
 
     disk: .byte 0
 
-    dap_kernel:
+dap_kernel:
     .byte 0x10
     .byte 0x00
-    .word KERNEL_SECTORS
-    .word KERNEL_OFFSET
-    .word KERNEL_SEGMENT
+    .word kernel_sectors
+    .word 0
+    .word 0x1000
     .quad 1
 
-    gdt_start:
+gdt_start:
     .quad 0
     .word 0xFFFF, 0x0000, 0x9A00, 0x00CF
-    gdt_data:
+gdt_data:
     .word 0xFFFF, 0x0000, 0x9200, 0x00CF
-    gdt_end:
+gdt_end:
 
-    gdt_descriptor:
+gdt_descriptor:
     .word gdt_end - gdt_start - 1
     .long gdt_start
 

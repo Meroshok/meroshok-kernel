@@ -1,6 +1,8 @@
+.code32
 #include "config.h"
 #include "asm_macros.h"
 
+.section .text
 .global vga_write
 vga_write:
     PUSH_GPRS
