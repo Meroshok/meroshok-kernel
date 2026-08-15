@@ -12,6 +12,7 @@ SRC_DIR = src
 KERNEL_OBJS = \
     $(BUILD_DIR)/kernel.o \
     $(BUILD_DIR)/kernel_data.o \
+	$(BUILD_DIR)/vga_data.o \
     $(BUILD_DIR)/prepare_memmap.o \
     $(BUILD_DIR)/pmm.o \
     $(BUILD_DIR)/vga_write.o \
@@ -24,9 +25,6 @@ build:
 	mkdir -p build
 
 $(BUILD_DIR)/%.o: $(SRC_DIR)/%.S | $(BUILD_DIR)
-	$(CC) $(ASFLAGS) -c $< -o $@
-
-$(BUILD_DIR)/%.o: $(SRC_DIR)/vga_shell_cmd/%.S | $(BUILD_DIR)
 	$(CC) $(ASFLAGS) -c $< -o $@
 
 $(BUILD_DIR)/kernel.bin: $(KERNEL_OBJS)
@@ -56,7 +54,7 @@ os.img: $(BUILD_DIR)/boot.bin $(BUILD_DIR)/kernel.bin
 	cp $(BUILD_DIR)/boot.bin os.img
 	cat $(BUILD_DIR)/kernel.bin >> os.img
 
-run: os.img
+run: os.img clean
 	qemu-system-x86_64 -drive format=raw,file=os.img
 
 clean:

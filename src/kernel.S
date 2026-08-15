@@ -15,11 +15,6 @@ kernel:
 
     movl $0x90000, %esp
     cld
-
-
-
-    movl $VGA_ADDR, VGA_BUFFER_PTR_ADDR
-    movl $VGA_ROW_SIZE, VGA_ROW_REMAINING_ADDR
     
     call pmm_init
     call vga_shell
